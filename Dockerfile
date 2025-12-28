@@ -23,7 +23,7 @@ COPY src ./src/
 RUN npm run build || (echo "Build failed" && exit 1)
 
 # Verify build output exists and show structure
-RUN ls -la dist/ && ls -la dist/main.js || (echo "main.js not found in dist" && exit 1)
+RUN ls -la dist/ && ls -la dist/src/main.js || (echo "main.js not found in dist/src" && exit 1)
 
 # Production stage
 FROM node:20.19-alpine AS production
@@ -59,4 +59,4 @@ EXPOSE 3000
 ENV NODE_ENV=production
 
 # Start the application
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]
