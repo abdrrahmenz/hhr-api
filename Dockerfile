@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:20.19-alpine AS builder
 
 WORKDIR /app
 
@@ -26,7 +26,7 @@ RUN npm run build || (echo "Build failed" && exit 1)
 RUN ls -la dist/ && ls -la dist/main.js || (echo "main.js not found in dist" && exit 1)
 
 # Production stage
-FROM node:20-alpine AS production
+FROM node:20.19-alpine AS production
 
 WORKDIR /app
 
