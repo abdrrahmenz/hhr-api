@@ -1,0 +1,177 @@
+import { PrismaService } from '../../prisma';
+import { OtaClientService } from './ota-client.service';
+import { SearchTrainDto, CreateBookingDto } from './dto';
+import { Prisma } from '@prisma/client';
+interface AuthenticatedUser {
+    id: string;
+    email: string;
+    role: string;
+    organizationId?: string;
+    organization?: {
+        markupType: string;
+        markupValue: Prisma.Decimal;
+    };
+}
+export declare class OtaService {
+    private prisma;
+    private otaClient;
+    private readonly logger;
+    constructor(prisma: PrismaService, otaClient: OtaClientService);
+    getRoutes(): Promise<any>;
+    searchTrains(dto: SearchTrainDto): Promise<any>;
+    createBooking(dto: CreateBookingDto, user: AuthenticatedUser): Promise<{
+        id: string;
+        bookingCode: string;
+        otaBookingRef: string | null;
+        status: import("@prisma/client").$Enums.BookingStatus;
+        priceIDR: number;
+        priceSAR: number;
+        markupAmount: number;
+        totalAmount: number;
+    }>;
+    getBooking(bookingId: string, userId: string): Promise<{
+        exchangeRate: {
+            id: string;
+            isActive: boolean;
+            createdAt: Date;
+            fromCurrency: string;
+            toCurrency: string;
+            buyRate: Prisma.Decimal;
+            sellRate: Prisma.Decimal;
+            midRate: Prisma.Decimal | null;
+            source: string;
+            fetchedAt: Date;
+        } | null;
+        payments: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            status: import("@prisma/client").$Enums.PaymentStatus;
+            bookingId: string;
+            xenditPaymentId: string | null;
+            externalId: string;
+            qrString: string | null;
+            amount: Prisma.Decimal;
+            currency: string;
+            paymentMethod: string;
+            expiresAt: Date;
+            paidAt: Date | null;
+            webhookPayload: Prisma.JsonValue | null;
+            callbackUrl: string | null;
+            metadata: Prisma.JsonValue | null;
+        }[];
+    } & {
+        id: string;
+        organizationId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        origin: string;
+        destination: string;
+        departureDate: Date;
+        returnDate: Date | null;
+        passengerCount: number;
+        tripType: string;
+        passengers: Prisma.JsonValue;
+        bookingCode: string;
+        otaBookingRef: string | null;
+        status: import("@prisma/client").$Enums.BookingStatus;
+        priceIDR: Prisma.Decimal;
+        priceSAR: Prisma.Decimal;
+        totalAmount: Prisma.Decimal;
+        pnr: string | null;
+        originName: string | null;
+        destinationName: string | null;
+        markupAmount: Prisma.Decimal;
+        ticketUrl: string | null;
+        otaResponse: Prisma.JsonValue | null;
+        notes: string | null;
+        userId: string;
+        exchangeRateId: string | null;
+    }>;
+    getUserBookings(userId: string, page?: number, limit?: number): Promise<{
+        data: ({
+            payments: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                status: import("@prisma/client").$Enums.PaymentStatus;
+                bookingId: string;
+                xenditPaymentId: string | null;
+                externalId: string;
+                qrString: string | null;
+                amount: Prisma.Decimal;
+                currency: string;
+                paymentMethod: string;
+                expiresAt: Date;
+                paidAt: Date | null;
+                webhookPayload: Prisma.JsonValue | null;
+                callbackUrl: string | null;
+                metadata: Prisma.JsonValue | null;
+            }[];
+        } & {
+            id: string;
+            organizationId: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            origin: string;
+            destination: string;
+            departureDate: Date;
+            returnDate: Date | null;
+            passengerCount: number;
+            tripType: string;
+            passengers: Prisma.JsonValue;
+            bookingCode: string;
+            otaBookingRef: string | null;
+            status: import("@prisma/client").$Enums.BookingStatus;
+            priceIDR: Prisma.Decimal;
+            priceSAR: Prisma.Decimal;
+            totalAmount: Prisma.Decimal;
+            pnr: string | null;
+            originName: string | null;
+            destinationName: string | null;
+            markupAmount: Prisma.Decimal;
+            ticketUrl: string | null;
+            otaResponse: Prisma.JsonValue | null;
+            notes: string | null;
+            userId: string;
+            exchangeRateId: string | null;
+        })[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        };
+    }>;
+    cancelBooking(bookingId: string, userId: string): Promise<{
+        id: string;
+        organizationId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        origin: string;
+        destination: string;
+        departureDate: Date;
+        returnDate: Date | null;
+        passengerCount: number;
+        tripType: string;
+        passengers: Prisma.JsonValue;
+        bookingCode: string;
+        otaBookingRef: string | null;
+        status: import("@prisma/client").$Enums.BookingStatus;
+        priceIDR: Prisma.Decimal;
+        priceSAR: Prisma.Decimal;
+        totalAmount: Prisma.Decimal;
+        pnr: string | null;
+        originName: string | null;
+        destinationName: string | null;
+        markupAmount: Prisma.Decimal;
+        ticketUrl: string | null;
+        otaResponse: Prisma.JsonValue | null;
+        notes: string | null;
+        userId: string;
+        exchangeRateId: string | null;
+    }>;
+    processTicketing(bookingId: string): Promise<any>;
+    downloadTickets(bookingId: string, userId: string): Promise<Buffer<ArrayBufferLike>>;
+}
+export {};

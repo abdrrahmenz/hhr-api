@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+enum UserRole {
+  ADMIN
+  B2B
+  B2C
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  TICKETED
+  CANCELLED
+  FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  EXPIRED
+  REFUNDED
+  FAILED
+}
+
+model User {
+  id             String        @id @default(uuid())
+  email          String        @unique
+  password       String
+  name           String
+  phone          String?
+  role           UserRole      @default(B2C)
+  isActive       Boolean       @default(true)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  bookings       Booking[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([email])
+  @@index([organizationId])
+}
+
+model Organization {
+  id          String    @id @default(uuid())
+  name        String
+  code        String    @unique
+  address     String?
+  phone       String?
+  email       String?
+  markupType  String    @default("PERCENTAGE") // PERCENTAGE or FIXED
+  markupValue Decimal   @default(0) @db.Decimal(10, 2)
+  isActive    Boolean   @default(true)
+  users       User[]
+  bookings    Booking[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([code])
+}
+
+model Booking {
+  id              String        @id @default(uuid())
+  bookingCode     String        @unique @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  organizationId  String?
+  organization    Organization? @relation(fields: [organizationId], references: [id])
+  otaBookingRef   String?       @unique // Go7 booking reference
+  pnr             String?
+  status          BookingStatus @default(PENDING)
+  tripType        String        // ONE_WAY, ROUND_TRIP
+  departureDate   DateTime
+  returnDate      DateTime?
+  origin          String
+  originName      String?
+  destination     String
+  destinationName String?
+  passengers      Json          // Passenger details array
+  passengerCount  Int           @default(1)
+  priceIDR        Decimal       @db.Decimal(15, 2)
+  priceSAR        Decimal       @db.Decimal(15, 2)
+  markupAmount    Decimal       @default(0) @db.Decimal(15, 2)
+  totalAmount     Decimal       @db.Decimal(15, 2)
+  exchangeRateId  String?
+  exchangeRate    ExchangeRate? @relation(fields: [exchangeRateId], references: [id])
+  payments        Payment[]
+  ticketUrl       String?
+  otaResponse     Json?         // Raw OTA API response for debugging
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([departureDate])
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  bookingId       String
+  booking         Booking       @relation(fields: [bookingId], references: [id])
+  xenditPaymentId String?       @unique
+  externalId      String        @unique
+  qrString        String?       @db.Text
+  amount          Decimal       @db.Decimal(15, 2)
+  currency        String        @default("IDR")
+  status          PaymentStatus @default(PENDING)
+  paymentMethod   String        @default("QRIS")
+  expiresAt       DateTime
+  paidAt          DateTime?
+  webhookPayload  Json?
+  callbackUrl     String?
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([bookingId])
+  @@index([status])
+  @@index([externalId])
+}
+
+model ExchangeRate {
+  id           String    @id @default(uuid())
+  fromCurrency String    @default("IDR")
+  toCurrency   String    @default("SAR")
+  buyRate      Decimal   @db.Decimal(15, 6)
+  sellRate     Decimal   @db.Decimal(15, 6)
+  midRate      Decimal?  @db.Decimal(15, 6)
+  source       String    @default("BANK_MANDIRI")
+  isActive     Boolean   @default(true)
+  fetchedAt    DateTime  @default(now())
+  bookings     Booking[]
+  createdAt    DateTime  @default(now())
+
+  @@index([fromCurrency, toCurrency])
+  @@index([fetchedAt])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  entity     String
+  entityId   String?
+  oldValue   Json?
+  newValue   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
